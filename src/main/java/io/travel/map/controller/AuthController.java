@@ -1,6 +1,8 @@
 package io.travel.map.controller;
 
+import io.travel.map.entity.User;
 import io.travel.map.security.JwtTokenProvider;
+import io.travel.map.service.CustomOAuth2UserService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;

@@ -1,5 +1,7 @@
 package io.travel.map.service;
 
+import io.travel.map.entity.User;
+import io.travel.map.repository.UserRepository;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
