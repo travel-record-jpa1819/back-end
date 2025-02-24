@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,10 +28,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     // JWT 검증을 통해 사용자 인증을 수행하는 역할
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        String token = request.getHeader("Authorization"); // Http 요청의 Authorization 헤더에서 JWT 가져오기
+        // JWT 토큰을 Authorization 헤더 대신 쿠키에서 가져옴
+        String token = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
 
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7); // 토큰이 있다면 Bearer 부분을 제거하여 순수한 토큰 값만 남김
+        if (token != null) {
             try {
                 // 검증로직
                 Claims claims = Jwts.parserBuilder()
@@ -54,6 +63,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
+        }else {
+            System.out.println("JWT 쿠키가 존재하지 않음");
         }
 
         chain.doFilter(request, response);

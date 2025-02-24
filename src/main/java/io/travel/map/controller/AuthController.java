@@ -3,6 +3,9 @@ package io.travel.map.controller;
 import io.travel.map.entity.User;
 import io.travel.map.security.JwtTokenProvider;
 import io.travel.map.service.CustomOAuth2UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -25,23 +29,9 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public Map<String, Object> login(OAuth2AuthenticationToken token) {
-        // OAuth2 로그인 처리 후 User 객체 가져오기
-        User user = userService.processOAuth2User(token);
+    public ResponseEntity<?> login(OAuth2AuthenticationToken token){
+        return ResponseEntity.ok(Map.of("message","Login successful"));
 
-        // 이메일 가져오기
-        String email = (user != null) ? user.getEmail() : extractEmailFromOAuth2Token(token);
-        if (email == null) {
-            throw new IllegalStateException("이메일 정보를 찾을 수 없습니다.");
-        }
-
-        // Authentication 객체 생성
-        Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, token.getAuthorities());
-
-        // JWT 생성
-        String jwt = jwtTokenProvider.generateToken(authentication);
-
-        return Map.of("token", jwt, "user", user);
     }
 
     // OAuth2AuthenticationToken에서 이메일 추출
