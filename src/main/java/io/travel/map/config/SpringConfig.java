@@ -2,6 +2,7 @@ package io.travel.map.config;
 
 import io.travel.map.security.JwtAuthFilter;
 import io.travel.map.security.JwtTokenProvider;
+import jakarta.servlet.http.Cookie;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -64,9 +65,17 @@ public class SpringConfig {
             String jwtToken = generateJwtToken(authentication);
 
             // JWT를 프론트엔드로 응답 (예: JSON 형태로 반환)
-            response.setContentType("application/json");
-            response.getWriter().write("{\"token\": \"" + jwtToken + "\"}");
-            response.getWriter().flush();
+            Cookie jwtCookie = new Cookie("jwt", jwtToken);
+            jwtCookie.setHttpOnly(true);
+            jwtCookie.setSecure(false); // 개발환경에서는 false
+            jwtCookie.setPath("/");
+            jwtCookie.setMaxAge(7*24*60*60);
+            jwtCookie.setAttribute("SameSite", "None");
+
+            response.addCookie(jwtCookie);
+
+            //프론트로 리다이렉트
+            response.sendRedirect("http://localhost:5173/profile");
         };
     }
 
