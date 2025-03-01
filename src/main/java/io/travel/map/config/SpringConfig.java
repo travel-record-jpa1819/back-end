@@ -3,6 +3,7 @@ package io.travel.map.config;
 import io.travel.map.security.JwtAuthFilter;
 import io.travel.map.security.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +18,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+@Slf4j
 @Configuration
 public class SpringConfig {
 
@@ -74,8 +76,12 @@ public class SpringConfig {
 
             response.addCookie(jwtCookie);
 
+            System.out.println("JWT 쿠키 설정 완료: " + jwtToken);
+
+            log.info("JWT cookie = {} ", jwtCookie);
+
             //프론트로 리다이렉트
-            response.sendRedirect("http://localhost:5173/profile");
+            response.sendRedirect("http://localhost:8080/profile");
         };
     }
 
