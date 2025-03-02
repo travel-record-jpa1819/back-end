@@ -6,7 +6,6 @@ import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
@@ -66,23 +65,23 @@ public class SpringConfig {
         return (request, response, authentication) -> {
             // OAuth2 로그인 성공 후 JWT 발급
             String jwtToken = generateJwtToken(authentication);
+            log.info("jwtToken = {}", jwtToken);
 
-            ResponseCookie jwtCookie = ResponseCookie.from("jwt", jwtToken)
-                    .httpOnly(true)
-                    .secure(false) // HTTPS 환경이면 true로 설정
-                    .sameSite("None") // 크로스 도메인 요청 허용
-                    .path("/")
-                    .maxAge(7 * 24 * 60 * 60) // 7일
-                    .build();
+            // JWT를 프론트엔드로 응답 (예: JSON 형태로 반환)
+            Cookie jwtCookie = new Cookie("jwt", jwtToken);
+            jwtCookie.setHttpOnly(true);
+            jwtCookie.setSecure(true); // 개발환경에서는 false
+            jwtCookie.setPath("/");
+            jwtCookie.setMaxAge(7*24*60*60);
+            jwtCookie.setAttribute("SameSite", "None");
 
-            response.setHeader("Set-Cookie", jwtCookie.toString());
+            log.info("cookie = {}", jwtCookie);
 
-            System.out.println("JWT 쿠키 설정 완료: " + jwtToken);
-
-            log.info("JWT cookie = {} ", jwtCookie);
+            response.addCookie(jwtCookie);
 
             //프론트로 리다이렉트
-            response.sendRedirect("http://localhost:8080/profile");
+            //
+            response.sendRedirect("http://localhost:5173/profile");
         };
     }
 
