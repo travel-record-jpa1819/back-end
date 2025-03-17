@@ -1,15 +1,11 @@
 package io.travel.map.controller;
 
 import io.travel.map.entity.User;
-import io.travel.map.repository.UserRepository;
-import io.travel.map.service.CustomOAuth2UserService;
-import org.springframework.http.HttpStatus;
+import io.travel.map.repository.UserRepository;import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.HashMap;
@@ -18,13 +14,10 @@ import java.util.Map;
 @Controller
 public class ViewController {
 
-    private final CustomOAuth2UserService userService;
     private final UserRepository userRepository;
 
-    public ViewController(CustomOAuth2UserService userService, UserRepository userRepository) {
-        this.userService = userService;
+    public ViewController(UserRepository userRepository) {
         this.userRepository = userRepository;
-
     }
 
     @GetMapping("/profile")
@@ -36,7 +29,7 @@ public class ViewController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
 
-        // auth.getName() == email
+        // Authentication 객체에서 이메일 추출 (여기서는 auth.getName()이 이메일로 설정됨)
         String email = auth.getName();
 
         // DB 조회 (email로 User 찾아오기)
@@ -49,8 +42,7 @@ public class ViewController {
         userInfo.put("email", user.getEmail());
         userInfo.put("photo", user.getPhotoUrl());
 
-        // 200 OK + JSON
+        // 200 OK + JSON 응답
         return ResponseEntity.ok(userInfo);
     }
-
 }
