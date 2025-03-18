@@ -92,7 +92,7 @@ public class SpringConfig {
             jwtCookie.setAttribute("SameSite", "Lax");
 
             response.addCookie(jwtCookie); // 쿠키를 클라이언트에 전달
-            response.sendRedirect("http://localhost:5173/profile");
+            response.sendRedirect("http://localhost:8080/profile");
 
             // 백엔드 테스트
 //            response.setContentType("application/json");
