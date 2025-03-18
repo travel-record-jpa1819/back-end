@@ -78,7 +78,7 @@ public class SpringConfig {
                 response.setContentType("application/json");
                 response.getWriter().write("{\"error\": \"OAuth2 인증 실패\"}");
                 return;
-               // response.sendRedirect("http://localhost:5173/login"); 배포 코드
+               // response.sendRedirect("http://localhost:5173/login"); // 배포 코드
             }
 
             String jwtToken = generateJwtToken(authentication);
@@ -94,7 +94,8 @@ public class SpringConfig {
             response.addCookie(jwtCookie); // 쿠키를 클라이언트에 전달
             response.sendRedirect("http://localhost:5173/profile");
 
-//            response.setContentType("application/json"); 백엔드 테스트
+            // 백엔드 테스트
+//            response.setContentType("application/json");
 //            response.getWriter().write("{\"token\": \"" + jwtToken + "\"}");
         };
     }

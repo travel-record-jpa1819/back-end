@@ -50,6 +50,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
         String photoUrl = (String) attributes.get("picture");
+
+        if (email == null) {
+            throw new OAuth2AuthenticationException("이메일 정보가 없습니다. 다른 OAuth2 프로바이더를 확인하세요.");
+        }
+
+
         log.info("추출된 email: {}, name: {}, picture: {}", email, name, photoUrl);
 
         // 5. DB에 해당 email이 이미 있는지 확인, 없으면 새로 생성
@@ -67,7 +73,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         return new DefaultOAuth2User(
                 Collections.emptyList(),  // 권한 목록(필요하다면 ROLE_USER 등 부여)
                 attributes,              // OAuth2User의 주요 정보 (email, name, etc)
-                "sub"                    // attributes에서 '키'를 지정 (구글은 "sub", 깃헙은 "id" 등)
+                "email"                    // attributes에서 '키'를 지정)
         );
     }
 
