@@ -2,12 +2,13 @@ package io.travel.map.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -17,18 +18,20 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 
+@Slf4j
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-    @Value("${jwt.secret}")
-    private String secretKey; // 환경 변수에서 관리하는 것이 좋음
+    private final JwtTokenProvider jwtTokenProvider;
+
+    public JwtAuthFilter(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     @Override
-    // 모든 API 요청이 들어오면 이 메서드가 자동으로 실행됨
-    // JWT 검증을 통해 사용자 인증을 수행하는 역할
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        // JWT 토큰을 Authorization 헤더 대신 쿠키에서 가져옴
         String token = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
@@ -39,19 +42,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
 
+        log.info("JWT 토큰 확인: {}", token);
+
         if (token != null) {
             try {
-                // 검증로직
-                Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(secretKey)
-                        .build()
-                        .parseClaimsJws(token)
-                        .getBody();
+                Claims claims = jwtTokenProvider.getClaimsFromToken(token); // ✅ 변경된 부분
+                String email = claims.getSubject();
 
-                String email = claims.getSubject(); // 토큰이 정상적이라면 이메일을 가져옴
+                // JWT 만료 여부 확인
+                if (claims.getExpiration().before(new Date())) {
+                    log.info("JWT 토큰이 만료됨");
+                    response.addCookie(createExpiredJwtCookie());
+                    SecurityContextHolder.clearContext();
+                    chain.doFilter(request, response);
+                    return;
+                }
 
-                // Spring Security에 인증 정보 저장
-                // Spring Security 가 헤딩 요청을 인증된 사용자로 인식해야 하기 때문에 인증 적보를 저장
                 UserDetails userDetails = new User(email, "", new ArrayList<>());
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -59,14 +65,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } catch (Exception e) {
-                // JWT가 유효하지 않으면 401 에러 반환
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                log.info("유효하지 않은 JWT, 자동 로그아웃 수행");
+                response.addCookie(createExpiredJwtCookie());
+                SecurityContextHolder.clearContext();
+                chain.doFilter(request, response);
                 return;
             }
-        }else {
-            System.out.println("JWT 쿠키가 존재하지 않음");
+        } else {
+            log.info("JWT 쿠키 없음, 인증되지 않은 상태");
         }
 
         chain.doFilter(request, response);
+    }
+
+    private Cookie createExpiredJwtCookie() {
+        Cookie expiredCookie = new Cookie("jwt", "");
+        expiredCookie.setHttpOnly(true);
+        expiredCookie.setSecure(false);
+        expiredCookie.setPath("/");
+        expiredCookie.setMaxAge(0);
+        return expiredCookie;
     }
 }

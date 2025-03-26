@@ -2,7 +2,10 @@ package io.travel.map.config;
 
 import io.travel.map.security.JwtAuthFilter;
 import io.travel.map.security.JwtTokenProvider;
+import io.travel.map.service.CustomOAuth2UserService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,31 +20,38 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+@Slf4j
 @Configuration
 public class SpringConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
-    public SpringConfig(JwtAuthFilter jwtAuthFilter, JwtTokenProvider jwtTokenProvider) {
+    public SpringConfig(JwtAuthFilter jwtAuthFilter, JwtTokenProvider jwtTokenProvider, CustomOAuth2UserService customOAuth2UserService) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT 사용
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/auth/login", "/auth/token").permitAll() // 토큰 발급 엔드포인트 추가
+                        .requestMatchers("/", "/auth/login", "/auth/token").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler()) // JWT 발급 로직 추가
+                        // OAuth2 로그인 시 사용자 정보를 가져올 때 CustomOAuth2UserService를 사용하도록 등록
+                        .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2SuccessHandler())
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 위치 수정
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -49,7 +59,7 @@ public class SpringConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // React 프론트엔드 허용
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
@@ -58,32 +68,39 @@ public class SpringConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
     @Bean
     public AuthenticationSuccessHandler oAuth2SuccessHandler() {
         return (request, response, authentication) -> {
-            // OAuth2 로그인 성공 후 JWT 발급
+            if (authentication == null || !authentication.isAuthenticated()) {
+                log.info("OAuth2 인증 실패");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"OAuth2 인증 실패\"}");
+                return;
+               // response.sendRedirect("http://localhost:5173/login"); // 배포 코드
+            }
+
             String jwtToken = generateJwtToken(authentication);
+            log.info("JWT 발급 완료: {}", jwtToken);
 
-            // JWT를 프론트엔드로 응답 (예: JSON 형태로 반환)
-            Cookie jwtCookie = new Cookie("jwt", jwtToken);
+            Cookie jwtCookie = new Cookie("jwt", jwtToken);  //새 쿠키를 생성하여 토큰을 저장
             jwtCookie.setHttpOnly(true);
-            jwtCookie.setSecure(false); // 개발환경에서는 false
+            jwtCookie.setSecure(false);
             jwtCookie.setPath("/");
-            jwtCookie.setMaxAge(7*24*60*60);
-            jwtCookie.setAttribute("SameSite", "None");
+            jwtCookie.setMaxAge(7 * 24 * 60 * 60);
+            jwtCookie.setAttribute("SameSite", "Lax");
 
-            response.addCookie(jwtCookie);
-
-            //프론트로 리다이렉트
+            response.addCookie(jwtCookie); // 쿠키를 클라이언트에 전달
             response.sendRedirect("http://localhost:5173/profile");
+
+            // 백엔드 테스트
+//            response.setContentType("application/json");
+//            response.getWriter().write("{\"token\": \"" + jwtToken + "\"}");
         };
     }
 
     private String generateJwtToken(Authentication authentication) {
-        // JWT 발급 로직 (JwtTokenProvider 사용)
-        return jwtTokenProvider.generateToken(authentication);// 실제로 JwtTokenProvider를 이용해 JWT 생성
+        return jwtTokenProvider.generateToken(authentication);
     }
 }
-
-
-
