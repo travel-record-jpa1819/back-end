@@ -1,10 +1,8 @@
 package io.travel.map.service;
 
-import io.travel.map.entity.User;
+import io.travel.map.document.User;
 import io.travel.map.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -63,10 +61,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .orElseGet(() -> {
                     User newUser = new User();
                     newUser.setEmail(email);
-                    newUser.setName(name);
+                    newUser.setUserName(name);
                     newUser.setPhotoUrl(photoUrl);
                     return userRepository.save(newUser);
                 });
+
 
         // 6. SecurityContext에 저장할 수 있는 OAuth2User 객체를 반환
         //    - DefaultOAuth2User(기본 구현체)를 사용하거나, 직접 CustomOAuth2User를 구현 가능

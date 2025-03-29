@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>Chat with AI</title>
+  <title>Travel Chatbot</title>
 </head>
 <body>
-<h2>AI Chat</h2>
 
-<!-- 채팅 입력 폼 -->
-<form th:action="@{/chat}" method="post">
-  <label for="message">Enter your message:</label>
-  <input type="text" id="message" name="message"
-         th:value="${userMessage}"/><!-- 사용자가 방금 쓴 메시지 기억 -->
+<h1>AI Travel Chatbot</h1>
+
+<!-- 대화 표시 영역 -->
+<div th:each="line : ${conversation}">
+  <p th:text="${line}"></p>
+</div>
+
+<!-- 사용자 입력 Form -->
+<form method="post" th:action="@{/chat}">
+  <input type="text" name="userMessage" placeholder="Ask me anything about travel..." />
   <button type="submit">Send</button>
 </form>
 
-<!-- AI 응답 결과 표시 -->
-<div>
-  <h3>Response:</h3>
-  <p th:text="${response}"></p>
-</div>
-
 </body>
 </html>
+

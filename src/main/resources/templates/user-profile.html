@@ -38,6 +38,13 @@
     <div class="name" th:text="${name}">User Name</div>
     <div class="email" th:text="${email}">user@example.com</div>
     <a href="/logout" class="logout-btn">Logout</a>
+    <a th:href="@{'/users/' + ${userId} + '/visitedCityForm'}">
+        <button>도시 등록하러 가기</button>
+    </a>
+    <a th:href="@{'/recommend/' + ${userId} + '/json'}">
+        <button>여행 추천 받기</button>
+    </a>
 </div>
+
 </body>
 </html>
