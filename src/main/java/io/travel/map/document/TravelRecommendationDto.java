@@ -16,7 +16,6 @@ import java.util.List;
 @Data
 public class TravelRecommendationDto {
     private String cityName;
-    private String countryAbbreviation;
     private String climate;
     private double exchangeRateUsd;
     private List<String> touristSpots;
