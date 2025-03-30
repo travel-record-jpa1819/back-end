@@ -4,15 +4,18 @@ import io.travel.map.document.User;
 import io.travel.map.document.VisitedCity;
 import io.travel.map.document.VisitedCityDTO;
 import io.travel.map.repository.UserRepository;
+import io.travel.map.service.CityAbbreviationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -20,9 +23,11 @@ import java.util.Optional;
 public class VisitedCityController {
 
     private final UserRepository userRepository;
+    private final CityAbbreviationService abbreviationService;
 
-    public VisitedCityController(UserRepository userRepository) {
+    public VisitedCityController(UserRepository userRepository, CityAbbreviationService abbreviationService) {
         this.userRepository = userRepository;
+        this.abbreviationService = abbreviationService;
     }
 
     /**
@@ -58,12 +63,16 @@ public class VisitedCityController {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
         newVisited.setDate(LocalDateTime.parse(dto.getDate(), formatter));
 
-        // 5. 유저에게 도시 추가 & 저장
+        // AI로 약어 생성
+        String abbreviation = abbreviationService.generateAbbreviation(dto.getCityName());
+        newVisited.setAbbreviation(abbreviation);
+
         user.getVisitedCities().add(newVisited);
         userRepository.save(user);
 
-        // 6. 성공 메시지 or 저장된 정보 반환
-        return ResponseEntity.ok(Map.of("message", "Visited city added successfully"));
+        // VisitedCity 객체 전체 반환
+        return ResponseEntity.ok(newVisited);
+
     }
 
     /**
