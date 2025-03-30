@@ -68,7 +68,7 @@ public class VisitedCityController {
         userRepository.save(user);
 
         // VisitedCity 객체 전체 반환
-        return ResponseEntity.ok("Visited city saved successfully.");
+        return ResponseEntity.ok(newVisited);
 
     }
 

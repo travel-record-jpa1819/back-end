@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class VisitedCityDTO {
     // 프론트에서 넘어오는 형태에 맞게 필드명 동일하게
+    private String id;
     private String cityName;
     private String countryName;
     private String lat;
