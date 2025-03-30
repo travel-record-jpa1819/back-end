@@ -6,13 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/recommend")
 public class RecommendationController {
 
     private final RecommendationAiService aiService;
@@ -25,7 +23,7 @@ public class RecommendationController {
      * DB 기반 AI 추천, JSON 배열로 파싱된 리스트를 리턴
      * - 토큰의 이메일(또는 User 식별자)을 사용해 유저를 특정
      */
-    @GetMapping("/json")
+    @GetMapping("/rec")
     public ResponseEntity<List<TravelRecommendationDto>> recommendCitiesJson(Authentication authentication) {
         // 1. 인증 여부 체크
         if (authentication == null || !authentication.isAuthenticated()) {
