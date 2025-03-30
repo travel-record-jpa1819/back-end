@@ -23,11 +23,9 @@ public class AuthController {
     @GetMapping("/login")
     public ResponseEntity<?> login(OAuth2AuthenticationToken token) {
         if (token == null || !token.isAuthenticated()) {
-            log.info("OAuth2 로그인 요청 시작");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
 
-        log.info("OAuth2 로그인 성공");
         return ResponseEntity.ok(Map.of("message", "Login successful"));
     }
 
