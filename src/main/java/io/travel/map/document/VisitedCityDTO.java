@@ -13,6 +13,5 @@ public class VisitedCityDTO {
     private String lng;
     private String date;   // DTO에서는 편의상 String으로 받음 → Service 레벨에서 변환
     private String notes;
-    private String countryAbbreviation;
     private boolean liked;
 }

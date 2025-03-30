@@ -64,10 +64,6 @@ public class VisitedCityController {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
         newVisited.setDate(LocalDateTime.parse(dto.getDate(), formatter));
 
-        // AI로 약어 생성
-        String abbreviation = abbreviationService.generateAbbreviation(dto.getCountryName());
-        newVisited.setCountryAbbreviation(abbreviation);
-
         user.getVisitedCities().add(newVisited);
         userRepository.save(user);
 
