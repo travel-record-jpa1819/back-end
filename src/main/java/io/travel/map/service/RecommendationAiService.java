@@ -43,11 +43,6 @@ public class RecommendationAiService {
         this.objectMapper = objectMapper;
     }
 
-    /**
-     * 1) Fetch user's visited cities from DB
-     * 2) Build a prompt requesting strictly JSON array output (multiple city info)
-     * 3) Invoke chatClient -> parse JSON array -> return as List<TravelRecommendationDto>
-     */
     public List<TravelRecommendationDto> recommendCitiesBasedOnUser(String email) {
         // 1) Find user or throw
         User user = userRepository.findByEmail(email)
@@ -75,9 +70,7 @@ public class RecommendationAiService {
         }
     }
 
-    /**
-     * Helper method to create a prompt that requests an array of recommended cities in valid JSON.
-     */
+
     private String buildJsonPrompt(User user) {
         StringBuilder sb = new StringBuilder();
 
@@ -100,7 +93,7 @@ public class RecommendationAiService {
                 Each element must be:
                 {
                   "cityName": "string",
-                  "countryAbbreviation": "string",
+                  "countryName": "string",
                   "climate": "string",
                   "exchangeRateUsd": number,
                   "touristSpots": ["string","string","string"]

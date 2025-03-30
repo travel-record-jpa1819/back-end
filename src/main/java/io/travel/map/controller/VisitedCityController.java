@@ -4,7 +4,6 @@ import io.travel.map.document.User;
 import io.travel.map.document.VisitedCity;
 import io.travel.map.document.VisitedCityDTO;
 import io.travel.map.repository.UserRepository;
-import io.travel.map.service.CityAbbreviationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -20,11 +20,9 @@ import java.util.Optional;
 public class VisitedCityController {
 
     private final UserRepository userRepository;
-    private final CityAbbreviationService abbreviationService;
 
-    public VisitedCityController(UserRepository userRepository, CityAbbreviationService abbreviationService) {
+    public VisitedCityController(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.abbreviationService = abbreviationService;
     }
 
     /**
@@ -120,6 +118,37 @@ public class VisitedCityController {
                 .findFirst()
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/visitedcities/{id}")
+    public ResponseEntity<?> deleteVisitedCityById(
+            @PathVariable String id,
+            Authentication authentication
+    ) {
+        // 1. 인증 여부 확인
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+
+        // 2. 유저 정보 가져오기
+        String email = authentication.getName();
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+
+        // 3. 해당 id를 가진 도시 삭제 시도
+        boolean removed = user.getVisitedCities().removeIf(city -> id.equals(city.getId()));
+
+        if (removed) {
+            userRepository.save(user); // 변경사항 저장
+            return ResponseEntity.ok(Map.of("message", "Visited city deleted successfully"));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "City with ID " + id + " not found"));
+        }
     }
 
 }
