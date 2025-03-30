@@ -9,10 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -96,4 +93,33 @@ public class VisitedCityController {
         // 4. 해당 유저의 visitedCities 반환
         return ResponseEntity.ok(userOpt.get().getVisitedCities());
     }
+
+
+    @GetMapping("/visitedcities/{id}")
+    public ResponseEntity<?> getVisitedCityById(
+            @PathVariable String id,
+            Authentication authentication
+    ) {
+        // 1. 인증 확인
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+
+        // 2. 인증된 사용자 이메일 가져오기
+        String email = authentication.getName();
+
+        // 3. 유저 찾기
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 4. 해당 id를 가진 도시 찾기
+        return userOpt.get().getVisitedCities().stream()
+                .filter(city -> id.equals(city.getId())) // city.getId()는 @Id 필드
+                .findFirst()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 }
