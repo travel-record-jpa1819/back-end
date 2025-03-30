@@ -15,6 +15,7 @@ public class VisitedCity {
     private String lng;
     private LocalDateTime date;
     private String notes;
-    private String abbreviation;
+    private String countryName;
+    private String countryAbbreviation;
     private boolean liked;
 }

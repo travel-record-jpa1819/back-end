@@ -59,19 +59,20 @@ public class VisitedCityController {
         newVisited.setLng(dto.getLng());
         newVisited.setNotes(dto.getNotes());
         newVisited.setLiked(dto.isLiked());
+        newVisited.setCountryName(dto.getCountryName());
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
         newVisited.setDate(LocalDateTime.parse(dto.getDate(), formatter));
 
         // AI로 약어 생성
-        String abbreviation = abbreviationService.generateAbbreviation(dto.getCityName());
-        newVisited.setAbbreviation(abbreviation);
+        String abbreviation = abbreviationService.generateAbbreviation(dto.getCountryName());
+        newVisited.setCountryAbbreviation(abbreviation);
 
         user.getVisitedCities().add(newVisited);
         userRepository.save(user);
 
         // VisitedCity 객체 전체 반환
-        return ResponseEntity.ok(newVisited);
+        return ResponseEntity.ok("Visited city saved successfully.");
 
     }
 

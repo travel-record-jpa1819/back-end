@@ -12,8 +12,8 @@ public class CityAbbreviationService {
         this.chatClient = chatClient;
     }
 
-    public String generateAbbreviation(String cityName) {
-        String prompt = String.format("Give me a 2-letter abbreviation for the city '%s'. Respond only with the abbreviation.", cityName);
+    public String generateAbbreviation(String countryName) {
+        String prompt = String.format("Give me a 2-letter abbreviation for the country '%s'. Respond only with the abbreviation.", countryName);
         String response = chatClient.prompt()
                 .user(prompt)
                 .call()
