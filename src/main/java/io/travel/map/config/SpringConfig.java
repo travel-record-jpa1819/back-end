@@ -81,7 +81,7 @@ public class SpringConfig {
                // response.sendRedirect("http://localhost:5173/login"); // 배포 코드
             }
 
-            String jwtToken = generateJwtToken(authentication);
+           String jwtToken = generateJwtToken(authentication);
             log.info("JWT 발급 완료: {}", jwtToken);
 
             Cookie jwtCookie = new Cookie("jwt", jwtToken);  //새 쿠키를 생성하여 토큰을 저장

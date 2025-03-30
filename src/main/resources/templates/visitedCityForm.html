@@ -1,0 +1,53 @@
+<!-- src/main/resources/templates/visitedCityForm.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Visited City Form</title>
+</head>
+<body>
+<h2>방문한 도시 등록</h2>
+
+<!--
+    - action: 등록할 API로 보낼 주소
+    - method: POST
+    - modelAttribute (th:object): VisitedCityDTO 형식
+-->
+<form th:action="@{/users/{userId}/visitedCities(userId=${userId})}"
+      th:object="${visitedCityForm}"
+      method="post">
+
+    <!-- 도시 선택 -->
+    <label for="cityId">도시 선택</label>
+    <select th:field="*{cityId}">
+        <!-- 간단히 하드코딩 예시 -->
+        <option value="Seoul">Seoul</option>
+        <option value="Tokyo">Tokyo</option>
+        <option value="Busan">Busan</option>
+        <option value="New York City">NewYork City</option>
+        <option value="Los Angeles">Los Angeles</option>
+        <option value="Chicago">Chicago</option>
+        <option value="Toronto">Toronto</option>
+
+    </select>
+    <br/><br/>
+
+    <!-- 방문 날짜 -->
+    <label for="visitedAt">방문 날짜</label>
+    <input type="date" th:field="*{visitedAt}" />
+    <br/><br/>
+
+    <!-- 설명 텍스트 -->
+    <label for="description">설명</label>
+    <textarea th:field="*{description}" rows="3" cols="50" placeholder="간단한 소감"></textarea>
+    <br/><br/>
+
+    <!-- 좋아요 여부 -->
+    <label for="liked">좋아요?</label>
+    <input type="checkbox" th:field="*{liked}" />
+    <br/><br/>
+
+    <button type="submit">등록하기</button>
+</form>
+
+</body>
+</html>

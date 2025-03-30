@@ -1,7 +1,8 @@
 package io.travel.map.controller;
 
-import io.travel.map.entity.User;
-import io.travel.map.repository.UserRepository;import org.springframework.http.HttpStatus;
+import io.travel.map.document.User;
+import io.travel.map.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,6 +14,7 @@ import java.util.Map;
 
 @Controller
 public class ViewController {
+    // 백엔드 테스트용 클래스
 
     private final UserRepository userRepository;
 
@@ -38,7 +40,7 @@ public class ViewController {
 
         // JSON 형태로 반환할 데이터 구성
         Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("name", user.getName());
+        userInfo.put("name", user.getUserName());
         userInfo.put("email", user.getEmail());
         userInfo.put("photo", user.getPhotoUrl());
 

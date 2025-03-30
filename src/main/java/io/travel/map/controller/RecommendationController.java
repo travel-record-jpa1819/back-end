@@ -1,13 +1,18 @@
 package io.travel.map.controller;
 
+import io.travel.map.document.TravelRecommendationDto;
 import io.travel.map.service.RecommendationAiService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.List;
+
+@RestController
+@RequestMapping("/recommend")
 public class RecommendationController {
 
     private final RecommendationAiService aiService;
@@ -17,25 +22,24 @@ public class RecommendationController {
     }
 
     /**
-     * 1) 채팅 폼(입력창) 보여주기
-     *    - 처음 접속 시에는 입력창만 보여주고, 답변은 없는 상태
+     * DB 기반 AI 추천, JSON 배열로 파싱된 리스트를 리턴
+     * - 토큰의 이메일(또는 User 식별자)을 사용해 유저를 특정
      */
-    @GetMapping("/chat")
-    public String showChatForm() {
-        return "chat"; // chat.html 템플릿
-    }
+    @GetMapping("/json")
+    public ResponseEntity<List<TravelRecommendationDto>> recommendCitiesJson(Authentication authentication) {
+        // 1. 인증 여부 체크
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-    /**
-     * 2) 채팅 내용 전송 후 결과 처리
-     *    - 사용자가 입력한 메시지를 AI에게 전달하고
-     *      그 결과를 동일 템플릿에 표시
-     */
-    @PostMapping("/chat")
-    public String processChatForm(@RequestParam("message") String message, Model model) {
-        String aiResponse = aiService.chat(message);
-        model.addAttribute("response", aiResponse);
-        model.addAttribute("userMessage", message);
-        return "chat"; // 다시 chat.html로
+        // 2. auth.getName()을 통해 이메일(혹은 username)을 추출
+        String email = authentication.getName();
+
+        // 3. 이메일을 기반으로 AI 추천
+        //    RecommendationAiService 내부에서 UserRepository 등을 이용해 user 찾기 가능
+        List<TravelRecommendationDto> dtoList = aiService.recommendCitiesBasedOnUser(email);
+
+        // 4. 결과 반환
+        return ResponseEntity.ok(dtoList);
     }
 }
-
