@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Upload Test</title>
+</head>
+<body>
+<h1>Upload File to S3</h1>
+<form method="post" action="/upload" enctype="multipart/form-data">
+    <input type="file" name="file"/>
+    <button type="submit">Upload</button>
+</form>
+
+<p th:if="${url}" style="margin-top: 20px;">
+    Uploaded File URL: <a th:href="${url}" th:text="${url}" target="_blank"></a>
+</p>
+</body>
+</html>
